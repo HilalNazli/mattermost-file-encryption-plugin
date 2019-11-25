@@ -1,7 +1,7 @@
 {
     "id": "com.github.mattermost-file-encryption-plugin",
-    "name": "File Encryption Plugin for Mattermost",
-    "description": "This Mattermost plugin serves as an encryption and decryption layer when uploading and downloading files, respectively.",
+    "name": "File Encryption",
+    "description": "This Mattermost plugin serves as a symmetric encryption and decryption layer when uploading and downloading files, respectively.",
     "version": "0.1.0",
     "min_server_version": "5.12.0",
     "server": {
