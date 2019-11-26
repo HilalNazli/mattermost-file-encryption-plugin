@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"sync"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -28,7 +29,7 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 	fmt.Fprint(w, "Hello, world!")
 }
 
-//FileWillBeUploaded hook
+// FileWillBeUploaded hook
 func (p *Plugin) FileWillBeUploaded(c *plugin.Context, info *model.FileInfo, file io.Reader, output io.Writer) (*model.FileInfo, string) {
 	_, err := ioutil.ReadAll(file)
 	if err != nil {
@@ -42,4 +43,17 @@ func (p *Plugin) FileWillBeUploaded(c *plugin.Context, info *model.FileInfo, fil
 	}
 
 	return nil, ""
+}
+
+// FileWillBeRead hook (we need to implement this hook. I couldn't yet.)
+func (p *Plugin) FileWillBeRead(c *plugin.Context, file io.Reader) {
+	data, err := ioutil.ReadAll(file)
+	if err != nil {
+		p.API.LogError(err.Error())
+		return
+	}
+	fmt.Printf(string(data))
+
+	file = strings.NewReader("Lets change the content of the downloaded text file :)")
+	return
 }
