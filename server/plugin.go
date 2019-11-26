@@ -1,7 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"golang.org/x/crypto/openpgp"
+	"golang.org/x/crypto/openpgp/armor"
+	"golang.org/x/crypto/openpgp/packet"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -31,18 +35,42 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 
 // FileWillBeUploaded hook
 func (p *Plugin) FileWillBeUploaded(c *plugin.Context, info *model.FileInfo, file io.Reader, output io.Writer) (*model.FileInfo, string) {
-	_, err := ioutil.ReadAll(file)
+	data, err := ioutil.ReadAll(file)
 	if err != nil {
 		p.API.LogError(err.Error())
 		return nil, err.Error()
 	}
 
-	myText := "Lets change the content of the uploaded text file :)."
-	if _, err := output.Write([]byte(myText)); err != nil {
+	// passphrase will be moved to env variable in the future.
+	passphrase := []byte("myTemporaryPassphrase1")
+
+	packetConfig := &packet.Config{
+		DefaultCipher: packet.CipherAES256,
+	}
+
+	encryptedData, _ := Encrypt(data, passphrase, packetConfig)
+
+	if _, err := output.Write([]byte(encryptedData)); err != nil {
 		p.API.LogError(err.Error())
 	}
 
 	return nil, ""
+}
+
+// Encrypt function source: https://play.golang.org/p/vk58yYArMh and https://asecuritysite.com/encryption/go_pgp
+func Encrypt(plaintext []byte, password []byte, packetConfig *packet.Config) (ciphertext []byte, err error) {
+	encbuf := bytes.NewBuffer(nil)
+
+	w, _ := armor.Encode(encbuf, "PGP MESSAGE", nil)
+	pt, _ := openpgp.SymmetricallyEncrypt(w, password, nil, packetConfig)
+	_, err = pt.Write(plaintext)
+	if err != nil {
+		return
+	}
+	pt.Close()
+	w.Close()
+	ciphertext = encbuf.Bytes()
+	return
 }
 
 // FileWillBeRead hook (we need to implement this hook. I couldn't yet.)
