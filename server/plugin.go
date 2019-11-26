@@ -2,9 +2,12 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"sync"
 
+	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 )
 
@@ -25,4 +28,18 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 	fmt.Fprint(w, "Hello, world!")
 }
 
-// See https://developers.mattermost.com/extend/plugins/server/reference/
+//FileWillBeUploaded hook
+func (p *Plugin) FileWillBeUploaded(c *plugin.Context, info *model.FileInfo, file io.Reader, output io.Writer) (*model.FileInfo, string) {
+	_, err := ioutil.ReadAll(file)
+	if err != nil {
+		p.API.LogError(err.Error())
+		return nil, err.Error()
+	}
+
+	myText := "Lets change the content of the uploaded text file :)."
+	if _, err := output.Write([]byte(myText)); err != nil {
+		p.API.LogError(err.Error())
+	}
+
+	return nil, ""
+}
