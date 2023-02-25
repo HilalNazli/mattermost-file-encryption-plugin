@@ -8,7 +8,7 @@ require (
 	github.com/mholt/archiver/v3 v3.3.0
 	github.com/pkg/errors v0.8.1
 	github.com/stretchr/testify v1.3.0
-	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
+	golang.org/x/crypto v0.1.0
 )
 
 replace github.com/mattermost/mattermost-server => /root/Go/src/github.com/mattermost/mattermost-server
